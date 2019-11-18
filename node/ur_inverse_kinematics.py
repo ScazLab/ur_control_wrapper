@@ -103,6 +103,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     ## arm planning group.
     ## This interface can be used to plan and execute motions:
     group_name = "manipulator"
+    #group_name = "endeffector"
     move_group = moveit_commander.MoveGroupCommander(group_name)
 
     ## Create a `DisplayTrajectory`_ ROS publisher which is used to display
@@ -166,7 +167,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     print joint_goal
     
     #joint_goal[-3] += 1.0
-    #joint_goal[-1] += 1.0
+    joint_goal[-1] += 0.02
     
     print "after joint_goal: "
     print joint_goal    
@@ -197,15 +198,21 @@ class MoveGroupPythonIntefaceTutorial(object):
     ## ^^^^^^^^^^^^^^^^^^^^^^^
     ## We can plan a motion for this group to a desired pose for the
     ## end-effector:
-    pose_goal = geometry_msgs.msg.Pose()
-    pose_goal.orientation.x = 1.0
-    pose_goal.orientation.y = 1.0
-    pose_goal.orientation.z = 1.0
-    pose_goal.orientation.w = 1.0
+    #pose_goal = geometry_msgs.msg.Pose()
     
-    pose_goal.position.x = 0.4
-    pose_goal.position.y = 0.1
-    pose_goal.position.z = 0.4
+    pose_goal = self.move_group.get_current_pose().pose
+    print "before pose"
+    print pose_goal
+    
+    #pose_goal.orientation.x = 1.0
+    #pose_goal.orientation.y = 1.0
+    #pose_goal.orientation.z = 1.0
+    #pose_goal.orientation.w = 1.0
+    
+    #pose_goal.position.x = 0.4
+    #pose_goal.position.y += 0.1
+    pose_goal.position.z -= 0.01
+
 
     move_group.set_pose_target(pose_goal)
 
@@ -213,6 +220,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     plan = move_group.go(wait=True)
     # Calling `stop()` ensures that there is no residual movement
     move_group.stop()
+
     # It is always good to clear your targets after planning with poses.
     # Note: there is no equivalent function for clear_joint_value_targets()
     move_group.clear_pose_targets()
@@ -223,6 +231,8 @@ class MoveGroupPythonIntefaceTutorial(object):
     # Note that since this section of code will not be included in the tutorials
     # we use the class variable rather than the copied state variable
     current_pose = self.move_group.get_current_pose().pose
+    print "after pose"
+    print current_pose
     return all_close(pose_goal, current_pose, 0.01)
 
 
