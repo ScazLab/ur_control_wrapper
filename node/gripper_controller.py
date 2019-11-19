@@ -12,7 +12,7 @@ class Gripper:
 		
 		self.activate_gripper()
 		
-		rospy.Subscriber("/ur_control_wrapper/connect", Bool, control)
+		rospy.Subscriber("/ur_control_wrapper/gripper", Bool, control)
 		
 	def get_gripper_command(self):
 		commands = ""
