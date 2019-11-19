@@ -9,7 +9,7 @@ class FreeDrive:
         self.free_drive_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
         self.connect_pub = rospy.Publisher("/ur_hardware_interface/connect", Bool, queue_size=10)
         
-        rospy.Subscriber("/ur_hardware_interface/enable_freedrive", Bool, self.enable)
+        rospy.Subscriber("/ur_control_wrapper/enable_freedrive", Bool, self.enable)
         
     def enable(self, data):
         self.connect_pub.publish(False)
