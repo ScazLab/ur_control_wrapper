@@ -22,7 +22,7 @@ class FreeDrive:
     
 if __name__ == '__main__':
     try:
-        rospy.init_node('set_free_drive_mode', anonymous=True)
+        rospy.init_node('ur_control_wrapper_set_free_drive_mode', anonymous=True)
 
         free_drive = FreeDrive()
 

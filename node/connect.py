@@ -56,7 +56,7 @@ class ExternalControl:
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('custom_external_control_mode', anonymous=True)
+        rospy.init_node('ur_control_wrapper_custom_external_control_mode', anonymous=True)
 
         external_control = ExternalControl()
 
