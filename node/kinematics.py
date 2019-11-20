@@ -34,6 +34,8 @@
 #
 # Author: Acorn Pooley, Mike Lautman
 
+# adapted from moveit online tutorial
+
 import sys
 import copy
 import rospy
@@ -71,7 +73,6 @@ def all_close(goal, actual, tolerance):
         return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
 
     return True
-
 
 class InverseKinematics(object):
     def __init__(self):
@@ -122,11 +123,19 @@ class InverseKinematics(object):
         rospy.Service('/ur_control_wrapper/set_joints', SetJoints, self.set_joints)
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
     
+    def convert_joint_msg_to_list(self, joint_msg):
+        joint_names = joint_msg.name
+        joints = joint_msg.position
+        return [joints[joint_names.index(name)] for name in self.joint_names]
+        
+    def convert_joint_list_to_message(self, joints):
+        msg = sensor_msgs.msg.JointState()
+        msg.name = self.joint_names
+        msg.position = joints
+        return msg
+    
     def get_joints(self, data):
-        joints = sensor_msgs.msg.JointState
-        joints.name = self.joint_names
-        joints.position = self.move_group.get_current_joint_values()
-        return GetJointsResponse(joints)
+        return GetJointsResponse(self.convert_joint_list_to_message(self.move_group.get_current_joint_values()))
 
     def set_joints(self, data):
         # Copy class variables to local variables to make the web tutorials more clear.
@@ -134,11 +143,11 @@ class InverseKinematics(object):
         # reason not to.
         move_group = self.move_group
 
-        joint_goal = []
+        joints = self.convert_joint_msg_to_list(data.request_joints)
 
         # The go command can be called with joint values, poses, or without any
         # parameters if you have already set the pose or joint target for the group
-        move_group.go(joint_goal, wait=True)
+        move_group.go(joints, wait=True)
 
         # Calling ``stop()`` ensures that there is no residual movement
         move_group.stop()
@@ -147,10 +156,13 @@ class InverseKinematics(object):
 
         # For testing:
         current_joints = move_group.get_current_joint_values()
-        return all_close(joint_goal, current_joints, 0.01)
+        
+        is_reached = all_close(joint_goal, current_joints, 0.01)
+        
+        return SetJointsResponse(self.convert_joint_list_to_message(current_joints), is_reached)
 
     def get_pose(self, data):
-        return self.move_group.get_current_pose().pose
+        return GetPoseResponse(self.move_group.get_current_pose().pose)
 
     def set_pose(self, data):
         # Copy class variables to local variables to make the web tutorials more clear.
@@ -164,21 +176,7 @@ class InverseKinematics(object):
         ## ^^^^^^^^^^^^^^^^^^^^^^^
         ## We can plan a motion for this group to a desired pose for the
         ## end-effector:
-        #pose_goal = geometry_msgs.msg.Pose()
-
-        pose_goal = self.move_group.get_current_pose().pose
-        print "before pose"
-        print pose_goal
-
-        #pose_goal.orientation.x = 1.0
-        #pose_goal.orientation.y = 1.0
-        #pose_goal.orientation.z = 1.0
-        #pose_goal.orientation.w = 1.0
-
-        #pose_goal.position.x = 0.4
-        #pose_goal.position.y += 0.1
-        pose_goal.position.z -= 0.01
-
+        pose_goal = data.request_pose
 
         move_group.set_pose_target(pose_goal)
 
@@ -197,9 +195,8 @@ class InverseKinematics(object):
         # Note that since this section of code will not be included in the tutorials
         # we use the class variable rather than the copied state variable
         current_pose = self.move_group.get_current_pose().pose
-        print "after pose"
-        print current_pose
-        return all_close(pose_goal, current_pose, 0.01)
+        is_reached = all_close(pose_goal, current_pose, 0.01)
+        return SetPoseResponse(current_pose, is_reached)
 
     def plan_cartesian_path(self, scale=1):
         # Copy class variables to local variables to make the web tutorials more clear.
