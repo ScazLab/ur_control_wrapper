@@ -116,7 +116,7 @@ class InverseKinematics(object):
         self.eef_link = eef_link
         self.group_names = group_names
         
-        self.joint_names = []
+        self.joint_names = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
         
         rospy.Service('/ur_control_wrapper/set_pose', SetPose, self.set_pose)
         rospy.Service('/ur_control_wrapper/get_pose', GetPose, self.get_pose)

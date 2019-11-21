@@ -163,23 +163,27 @@ class MoveGroupPythonIntefaceTutorial(object):
     # We can get the joint values from the group and adjust some of the values:
     joint_goal = move_group.get_current_joint_values()
     
-    print "after joint_goal: "
+    print "before joint_goal: "
     print joint_goal
     
-    #joint_goal[-3] += 1.0
-    joint_goal[-1] += 0.02
+    joints = move_group.get_joints()
+    print "joints:"
+    print joints
     
-    print "after joint_goal: "
-    print joint_goal    
+    ##joint_goal[-3] += 1.0
+    #joint_goal[-1] += 0.02
+    
+    #print "after joint_goal: "
+    #print joint_goal    
 
-    # The go command can be called with joint values, poses, or without any
-    # parameters if you have already set the pose or joint target for the group
-    move_group.go(joint_goal, wait=True)
+    ## The go command can be called with joint values, poses, or without any
+    ## parameters if you have already set the pose or joint target for the group
+    #move_group.go(joint_goal, wait=True)
 
-    # Calling ``stop()`` ensures that there is no residual movement
-    move_group.stop()
+    ## Calling ``stop()`` ensures that there is no residual movement
+    #move_group.stop()
 
-    ## END_SUB_TUTORIAL
+    ### END_SUB_TUTORIAL
 
     # For testing:
     current_joints = move_group.get_current_joint_values()
@@ -475,13 +479,13 @@ def main():
     raw_input()
     tutorial = MoveGroupPythonIntefaceTutorial()
 
-    #print "============ Press `Enter` to execute a movement using a joint state goal ..."
-    #raw_input()
-    #tutorial.go_to_joint_state()
-
-    print "============ Press `Enter` to execute a movement using a pose goal ..."
+    print "============ Press `Enter` to execute a movement using a joint state goal ..."
     raw_input()
-    tutorial.go_to_pose_goal()
+    tutorial.go_to_joint_state()
+
+    #print "============ Press `Enter` to execute a movement using a pose goal ..."
+    #raw_input()
+    #tutorial.go_to_pose_goal()
 
     #print "============ Press `Enter` to plan and display a Cartesian path ..."
     #raw_input()

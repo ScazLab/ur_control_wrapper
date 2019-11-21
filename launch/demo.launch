@@ -1,13 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  
-    <node pkg="ur_control_wrapper" name="connect" type="connect.py" output="screen" />
 
-    <node pkg="ur_control_wrapper" name="free_drive" type="free_drive.py" output="screen" />
-
-    <node pkg="ur_control_wrapper" name="gripper_controller" type="gripper_controller.py" output="screen" />
-
-    <node pkg="ur_control_wrapper" name="kinematics" type="kinematics.py" output="screen" />
+    <include file="$(find ur_control_wrapper)/launch/ur_control_wrapper.launch" />
 
     <node pkg="ur_control_wrapper" name="demo" type="demo.py" output="screen" />
 
