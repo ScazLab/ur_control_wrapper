@@ -26,7 +26,7 @@ class Demo:
             if direction == "x+":
                 current_pose.position.x += 0.05
             elif direction == "x-":
-                current_pose.posiiton.x -= 0.05
+                current_pose.position.x -= 0.05
             elif direction == "y+":
                 current_pose.position.y += 0.05
             elif direction == "y-":

@@ -7,9 +7,8 @@ from std_msgs.msg import String, Bool
 
 class ExternalControl:
     def __init__(self):
-        self.free_drive_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
+        self.connect_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
         self.external_control = self.get_external_control_command()
-        self.is_connected = True
         
         rospy.Subscriber("/ur_control_wrapper/connect", Bool, self.connect_to_robot)
     
@@ -49,10 +48,7 @@ class ExternalControl:
     
     def connect_to_robot(self, data):
         if data.data:
-            if not self.is_connected:
-                self.free_drive_pub.publish(commands)
-        else:
-            self.is_connected = False
+            self.connect_pub.publish(self.external_control)
 
 if __name__ == '__main__':
     try:
