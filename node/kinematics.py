@@ -159,7 +159,7 @@ class InverseKinematics(object):
         
         is_reached = all_close(joint_goal, current_joints, 0.01)
         
-        return SetJointsResponse(self.convert_joint_list_to_message(current_joints), is_reached)
+        return SetJointsResponse(is_reached, self.convert_joint_list_to_message(current_joints))
 
     def get_pose(self, data):
         return GetPoseResponse(self.move_group.get_current_pose().pose)
@@ -196,7 +196,7 @@ class InverseKinematics(object):
         # we use the class variable rather than the copied state variable
         current_pose = self.move_group.get_current_pose().pose
         is_reached = all_close(pose_goal, current_pose, 0.01)
-        return SetPoseResponse(current_pose, is_reached)
+        return SetPoseResponse(is_reached, current_pose)
 
     def plan_cartesian_path(self, scale=1):
         # Copy class variables to local variables to make the web tutorials more clear.

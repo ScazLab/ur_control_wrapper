@@ -16,7 +16,7 @@ class Demo:
         get_current_pose = rospy.ServiceProxy("/ur_control_wrapper/get_pose", GetPose)
         current_pose = None
         try:
-            current_pose = get_current_pose()
+            current_pose = get_current_pose().pose
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
         
@@ -34,8 +34,10 @@ class Demo:
             elif direction == "z+":
                 current_pose.position.z += 0.05
             elif direction == "z-":
-                current_pose.position.z -= 0.05             
-            pose, is_reached = set_current_pose(current_pose)
+                current_pose.position.z -= 0.05
+            response = set_current_pose(current_pose)
+            pose = response.response_pose
+            is_reached = response.is_reached
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
     
@@ -43,15 +45,15 @@ class Demo:
         while not rospy.is_shutdown():
             command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
             if command_input == "fs":
-                self.free_drive_pub(True)
+                self.free_drive_pub.publish(True)
             elif command_input == "fe":
-                self.free_drive_pub(False)
+                self.free_drive_pub.publish(False)
             elif command_input == "go":
-                self.gripper_pub(True)
+                self.gripper_pub.publish(True)
             elif command_input == "gc":
-                self.gripper_pub(False)
+                self.gripper_pub.publish(False)
             elif command_input == "c":
-                self.connect_pub(True)
+                self.connect_pub.publish(True)
             else: # move arm
                 direction = command_input
                 self.move_arm(direction)

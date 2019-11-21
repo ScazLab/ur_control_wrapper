@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
+import rospkg
+
+from std_msgs.msg import String, Bool
 
 class Gripper:
     def __init__(self):
@@ -12,7 +15,7 @@ class Gripper:
 
         self.activate_gripper()
 
-        rospy.Subscriber("/ur_control_wrapper/gripper", Bool, control)
+        rospy.Subscriber("/ur_control_wrapper/gripper", Bool, self.control)
 
     def get_gripper_command(self):
         commands = ""
@@ -24,7 +27,7 @@ class Gripper:
 
         return commands + "\n"
 
-    def activate_gripper():
+    def activate_gripper(self):
         command = self.gripper_commands.replace(self.command, "rq_activate_and_wait()")
         self.gripper_pub.publish(command)
 
@@ -34,15 +37,15 @@ class Gripper:
         else:
             self.close_gripper()
 
-    def open_gripper():
+    def open_gripper(self):
         command = self.gripper_commands.replace(self.command, "rq_open()")
         self.gripper_pub.publish(command)
 
-    def close_gripper():
+    def close_gripper(self):
         command = self.gripper_commands.replace(self.command, "rq_close()")
         self.gripper_pub.publish(command)
 
-    def deactivate_gripper():
+    def deactivate_gripper(self):
         command = self.gripper_commands.replace(self.command, "")
         self.gripper_pub.publish(command)
 

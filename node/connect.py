@@ -11,7 +11,7 @@ class ExternalControl:
         self.external_control = self.get_external_control_command()
         self.is_connected = True
         
-        rospy.Subscriber("/ur_control_wrapper/connect", Bool, connect_to_robot)
+        rospy.Subscriber("/ur_control_wrapper/connect", Bool, self.connect_to_robot)
     
     def get_external_control_command(self):
         commands = ""
