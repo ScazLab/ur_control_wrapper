@@ -7,6 +7,7 @@ from std_msgs.msg import String, Bool
 class FreeDrive:
     def __init__(self):
         self.free_drive_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
+        self.connect_pub = rospy.Publisher("/ur_control_wrapper/connect", Bool, queue_size=10)
         
         rospy.Subscriber("/ur_control_wrapper/enable_freedrive", Bool, self.enable)
         
@@ -16,6 +17,8 @@ class FreeDrive:
             self.free_drive_pub.publish('def myProg():\n\twhile (True):\n\t\tfreedrive_mode()\n\t\tsync()\n\tend\nend\n')
         else:
             self.free_drive_pub.publish('def myProg():\n\twhile (True):\n\t\tend_freedrive_mode()\n\t\tsleep(0.5)\n\tend\nend\n')
+            rospy.sleep(0.1)
+            self.connect_pub(True)
         #rospy.sleep(1.0)
         #self.connect_pub.publish(True)
     

@@ -24,8 +24,8 @@ Or you can run `ur5e_cam_2f85_control.launch` without running the three launch f
 It has the following topics:
 
 - /ur_control_wrapper/connect: It takes `Bool`, to start the externalcontrol program to connect the driver to the robot to enable robot arm control.
-- /ur_control_wrapper/enable_freedrive: It takes `Bool` to start or end the freedrive mode. It will stop the externalcontrol program. To control the robot arm after this command, please send true to the connect topic.
-- /ur_control_wrapper/gripper: It takes `Bool` to open or close the gripper. It will also stop the externalcontrol program.
+- /ur_control_wrapper/enable_freedrive: It takes `Bool` to start or end the freedrive mode. It will stop the externalcontrol program. If you send True, then you will need to manually restart the externalcontrol program by send true to the connect topic (as it is not known how long it would need to be in this state). However, if you exit the mode by sending False, you don't need to reconnect it manually, as the program already do it for you.
+- /ur_control_wrapper/gripper: It takes `Bool` to open or close the gripper. It will also stop the externalcontrol program. But you don't need to start externalcontrol in this case, since the program already does it for you.
 
 It runs the folliwng services:
 

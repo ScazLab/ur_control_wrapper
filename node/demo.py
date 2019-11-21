@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import String, Bool
 from ur_control_wrapper.srv import SetPose
 from ur_control_wrapper.srv import GetPose
+from ur_control_wrapper.srv import GetJoints
 
 class Demo:
     def __init__(self):
@@ -11,14 +12,28 @@ class Demo:
         self.gripper_pub = rospy.Publisher("/ur_control_wrapper/gripper", Bool, queue_size=10)
         self.connect_pub = rospy.Publisher("/ur_control_wrapper/connect", Bool, queue_size=10)
     
-    def move_arm(self, direction):
+    def get_pose(self):
         rospy.wait_for_service("/ur_control_wrapper/get_pose")
         get_current_pose = rospy.ServiceProxy("/ur_control_wrapper/get_pose", GetPose)
         current_pose = None
         try:
             current_pose = get_current_pose().pose
         except rospy.ServiceException as exc:
-            print "Service did not process request: " + str(exc)
+            print "Service did not process request: " + str(exc) 
+        return current_pose
+    
+    def get_angle(self):
+        rospy.wait_for_service("/ur_control_wrapper/get_joints")
+        get_current_joints = rospy.ServiceProxy("/ur_control_wrapper/get_joints", GetJoints)
+        current_joints = None
+        try:
+            current_joints = get_current_joints().joints
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc) 
+        return current_joints
+    
+    def move_arm(self, direction):
+        current_pose = self.get_pose()
         
         rospy.wait_for_service("/ur_control_wrapper/set_pose")
         set_current_pose = rospy.ServiceProxy("/ur_control_wrapper/set_pose", SetPose)
@@ -43,7 +58,8 @@ class Demo:
     
     def run(self):
         while not rospy.is_shutdown():
-            command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
+            print "====================================================="
+            command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
             if command_input == "fs":
                 self.free_drive_pub.publish(True)
             elif command_input == "fe":
@@ -54,6 +70,10 @@ class Demo:
                 self.gripper_pub.publish(False)
             elif command_input == "c":
                 self.connect_pub.publish(True)
+            elif command_input == "ep":
+                print self.get_pose()
+            elif command_input == "ja":
+                print self.get_angle()
             else: # move arm
                 direction = command_input
                 self.move_arm(direction)
