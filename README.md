@@ -1,8 +1,8 @@
 # ur_control_wrapper
 
-This is a ros wrapper to control The UR arm with the Robotiq 2F 85 gripper, with moveit. The setup instruction could be found here: [https://scazlab.github.io/ur5e_setup_guide.html]
+This is a ros wrapper to control The UR arm with the Robotiq 2F 85 gripper, with moveit. The setup instruction could be found here: <https://scazlab.github.io/ur5e_setup_guide.html>
 
-The UR ros driver is the latest one found here: [https://github.com/UniversalRobots/Universal_Robots_ROS_Driver]
+The UR ros driver is the latest one found here: <https://github.com/UniversalRobots/Universal_Robots_ROS_Driver>
 
 The control currently include the following functionalities:
 
