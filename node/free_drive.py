@@ -13,7 +13,7 @@ class FreeDrive:
         
     def enable(self, data):
         #self.connect_pub.publish(False)
-        if data.data:        
+        if data.data:
             self.free_drive_pub.publish('def myProg():\n\twhile (True):\n\t\tfreedrive_mode()\n\t\tsync()\n\tend\nend\n')
         else:
             self.free_drive_pub.publish('def myProg():\n\twhile (True):\n\t\tend_freedrive_mode()\n\t\tsleep(0.5)\n\tend\nend\n')

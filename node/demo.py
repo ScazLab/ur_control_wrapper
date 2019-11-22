@@ -2,9 +2,11 @@
 
 import rospy
 from std_msgs.msg import String, Bool
+from sensor_msgs.msg import JointState
 from ur_control_wrapper.srv import SetPose
 from ur_control_wrapper.srv import GetPose
 from ur_control_wrapper.srv import GetJoints
+from ur_control_wrapper.srv import SetJoints
 
 class Demo:
     def __init__(self):
@@ -31,6 +33,17 @@ class Demo:
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc) 
         return current_joints
+    
+    def set_default_angles(self):
+        rospy.wait_for_service("/ur_control_wrapper/set_joints")
+        set_joints = rospy.ServiceProxy("/ur_control_wrapper/set_joints", SetJoints)
+        joints = JointState()
+        joints.name = ["elbow_joint", "shoulder_lift_joint", "shoulder_pan_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+        joints.position = [2.242737118397848, -1.9379054508604945, -4.880746666585104, -0.3946760457805176, 1.2857670783996582, 4.764250755310059]
+        try:
+            response = set_joints(joints)
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc)      
     
     def move_arm(self, direction):
         current_pose = self.get_pose()
@@ -59,7 +72,7 @@ class Demo:
     def run(self):
         while not rospy.is_shutdown():
             print "====================================================="
-            command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
+            command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nGo to Default Position: d; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
             if command_input == "fs":
                 self.free_drive_pub.publish(True)
             elif command_input == "fe":
@@ -74,6 +87,8 @@ class Demo:
                 print self.get_pose()
             elif command_input == "ja":
                 print self.get_angle()
+            elif command_input == "d":
+                self.set_default_angles()
             else: # move arm
                 direction = command_input
                 self.move_arm(direction)

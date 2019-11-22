@@ -152,12 +152,10 @@ class InverseKinematics(object):
         # Calling ``stop()`` ensures that there is no residual movement
         move_group.stop()
 
-        ## END_SUB_TUTORIAL
-
         # For testing:
         current_joints = move_group.get_current_joint_values()
         
-        is_reached = all_close(joint_goal, current_joints, 0.01)
+        is_reached = all_close(joints, current_joints, 0.01)
         
         return SetJointsResponse(is_reached, self.convert_joint_list_to_message(current_joints))
 
