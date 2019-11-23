@@ -18,7 +18,7 @@ class FreeDrive:
         else:
             self.free_drive_pub.publish('def myProg():\n\twhile (True):\n\t\tend_freedrive_mode()\n\t\tsleep(0.5)\n\tend\nend\n')
             rospy.sleep(0.1)
-            self.connect_pub(True)
+            self.connect_pub.publish(True)
         #rospy.sleep(1.0)
         #self.connect_pub.publish(True)
     

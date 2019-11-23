@@ -6,7 +6,7 @@ The UR ros driver is the latest one found here: <https://github.com/UniversalRob
 
 The control currently include the following functionalities:
 
-- get/set the joint angles (not tested yet)
+- get/set the joint angles
 - get/set the end effector pose (e.g., kinematics and inverse kinematics)
 - open/close the gripper
 - start/end the freedrive mode
