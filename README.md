@@ -38,6 +38,10 @@ They are all blocking calls.
 
 To run the demo, launch: `demo.launch` or run demo.py directly with rosrun if ur_control_warpper.launch already launched.
 
+## new functions to be documented:
+- set trajectory
+- add plane
+
 ## Notes:
 
 local_ip in connect.py needs to be updated if used on a different computer

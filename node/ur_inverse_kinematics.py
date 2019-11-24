@@ -239,7 +239,6 @@ class MoveGroupPythonIntefaceTutorial(object):
     print current_pose
     return all_close(pose_goal, current_pose, 0.01)
 
-
   def plan_cartesian_path(self, scale=1):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good

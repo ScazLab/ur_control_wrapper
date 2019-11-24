@@ -52,8 +52,9 @@ from ur_control_wrapper.srv import SetPose, SetPoseResponse
 from ur_control_wrapper.srv import GetPose, GetPoseResponse
 from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
-
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
+
+from ur_control_wrapper.msg import AddPlane
 
 def all_close(goal, actual, tolerance):
     """
@@ -133,8 +134,9 @@ class InverseKinematics(object):
         rospy.Service('/ur_control_wrapper/get_pose', GetPose, self.get_pose)
         rospy.Service('/ur_control_wrapper/set_joints', SetJoints, self.set_joints)
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
-        
         rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
+
+        rospy.Subscriber('/ur_control_wrapper/add_plane', AddPlane, self.add_plane)
     
     def convert_joint_msg_to_list(self, joint_msg):
         joint_names = joint_msg.name
@@ -218,6 +220,16 @@ class InverseKinematics(object):
         is_reached = all_close(data.trajectory[-1], current_pose, 0.01)
         
         return SetTrajectoryResponse(is_reached, current_pose)
+    
+    def add_plane(self, data):
+        box_name = data.name
+        pose = data.pose
+        normal = (data.normal.x, data.normal.y, data.normal.z)
+        offset = data.offset
+        
+        scene = self.scene
+
+        scene.add_plane(name, pose, normal, offset)
 
     def display_trajectory(self, plan):
         # Copy class variables to local variables to make the web tutorials more clear.
