@@ -53,6 +53,8 @@ from ur_control_wrapper.srv import GetPose, GetPoseResponse
 from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 
+from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
+
 def all_close(goal, actual, tolerance):
     """
     Convenience method for testing if a list of values are within a tolerance of their counterparts in another list
@@ -131,6 +133,8 @@ class InverseKinematics(object):
         rospy.Service('/ur_control_wrapper/get_pose', GetPose, self.get_pose)
         rospy.Service('/ur_control_wrapper/set_joints', SetJoints, self.set_joints)
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
+        
+        rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
     
     def convert_joint_msg_to_list(self, joint_msg):
         joint_names = joint_msg.name
@@ -204,6 +208,16 @@ class InverseKinematics(object):
         current_pose = self.move_group.get_current_pose().pose
         is_reached = all_close(pose_goal, current_pose, 0.01)
         return SetPoseResponse(is_reached, current_pose)
+    
+    def set_trajectory(self, data):
+        move_group = self.move_group
+        (plan, fraction) = move_group.compute_cartesian_path(data.trajectory, 0.01, 0.0)
+        move_group.execute(plan, wait=True)
+        
+        current_pose = self.move_group.get_current_pose().pose
+        is_reached = all_close(data.trajectory[-1], current_pose, 0.01)
+        
+        return SetTrajectoryResponse(is_reached, current_pose)
 
     def plan_cartesian_path(self, scale=1):
         # Copy class variables to local variables to make the web tutorials more clear.

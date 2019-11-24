@@ -62,6 +62,7 @@ find_package(catkin REQUIRED COMPONENTS
    GetPose.srv
    SetJoints.srv
    GetJoints.srv
+   SetTrajectory.srv
  )
 
 ## Generate actions in the 'action' folder
