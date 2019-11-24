@@ -54,7 +54,7 @@ from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
 
-from ur_control_wrapper.msg import AddPlane
+from ur_control_wrapper.srv import AddBox, AddBoxResponse
 
 def all_close(goal, actual, tolerance):
     """
@@ -74,7 +74,13 @@ def all_close(goal, actual, tolerance):
         return all_close(goal.pose, actual.pose, tolerance)
 
     elif type(goal) is geometry_msgs.msg.Pose:
-        return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
+        goal_list = pose_to_list(goal)
+        actual_list = pose_to_list(actual)
+        
+        print "goal list: ", pose_to_list(goal)
+        print "actual list: ", pose_to_list(actual)
+        
+        return all_close(goal_list[:3], actual_list[:3], tolerance) and all_close(goal_list[3:], actual_list[3:], tolerance * 10)
 
     return True
 
@@ -135,8 +141,7 @@ class InverseKinematics(object):
         rospy.Service('/ur_control_wrapper/set_joints', SetJoints, self.set_joints)
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
         rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
-
-        rospy.Subscriber('/ur_control_wrapper/add_plane', AddPlane, self.add_plane)
+        rospy.Service('/ur_control_wrapper/add_box', AddBox, self.add_box)
     
     def convert_joint_msg_to_list(self, joint_msg):
         joint_names = joint_msg.name
@@ -305,31 +310,18 @@ class InverseKinematics(object):
         ## END_SUB_TUTORIAL
 
 
-    def add_box(self, timeout=4):
-        # Copy class variables to local variables to make the web tutorials more clear.
-        # In practice, you should use the class variables directly unless you have a good
-        # reason not to.
-        box_name = self.box_name
+    def add_box(self, data):
+        timeout = 4
         scene = self.scene
 
-        ## BEGIN_SUB_TUTORIAL add_box
-        ##
-        ## Adding Objects to the Planning Scene
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        ## First, we will create a box in the planning scene at the location of the left finger:
         box_pose = geometry_msgs.msg.PoseStamped()
-        box_pose.header.frame_id = "panda_leftfinger"
-        box_pose.pose.orientation.w = 1.0
-        box_pose.pose.position.z = 0.07 # slightly above the end effector
-        box_name = "box"
-        scene.add_box(box_name, box_pose, size=(0.1, 0.1, 0.1))
+        box_pose.header.frame_id = "world"
+        box_pose.pose = data.pose
+        box_name = data.name
+        box_size = (data.size.x, data.size.y, data.size.z)
+        scene.add_box(box_name, box_pose, size=box_size)
 
-        ## END_SUB_TUTORIAL
-        # Copy local variables back to class variables. In practice, you should use the class
-        # variables directly unless you have a good reason not to.
-        self.box_name=box_name
-        return self.wait_for_state_update(box_is_known=True, timeout=timeout)
-
+        return AddBoxResponse(self.wait_for_state_update(box_is_known=True, timeout=timeout))
 
     def attach_box(self, timeout=4):
         # Copy class variables to local variables to make the web tutorials more clear.
