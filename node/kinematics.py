@@ -40,7 +40,7 @@ import sys
 import copy
 import rospy
 import numpy as np
-import transformations as tfs
+from tf import transformations as tfs
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
@@ -80,10 +80,10 @@ def all_close(goal, actual, tolerance):
 
 def pose_to_list(pose_msg):
     pose_list = []
-    pose.append(pose_msg.position.x)
-    pose.append(pose_msg.position.y)
-    pose.append(pose_msg.position.z)
-    pose += tfs.euler_from_quaternion(np.array([pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w]))
+    pose_list.append(pose_msg.position.x)
+    pose_list.append(pose_msg.position.y)
+    pose_list.append(pose_msg.position.z)
+    pose_list += tfs.euler_from_quaternion(np.array([pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w]))
     return pose_list
 
 class InverseKinematics(object):
@@ -215,6 +215,12 @@ class InverseKinematics(object):
         move_group = self.move_group
         (plan, fraction) = move_group.compute_cartesian_path(data.trajectory, 0.01, 0.0)
         move_group.execute(plan, wait=True)
+        
+        move_group.stop()
+
+        # It is always good to clear your targets after planning with poses.
+        # Note: there is no equivalent function for clear_joint_value_targets()
+        move_group.clear_pose_targets()        
         
         current_pose = self.move_group.get_current_pose().pose
         is_reached = all_close(data.trajectory[-1], current_pose, 0.01)
