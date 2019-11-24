@@ -39,13 +39,14 @@
 import sys
 import copy
 import rospy
+import numpy as np
+import transformations as tfs
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 import sensor_msgs.msg
 from math import pi
 from std_msgs.msg import String
-from moveit_commander.conversions import pose_to_list
 
 from ur_control_wrapper.srv import SetPose, SetPoseResponse
 from ur_control_wrapper.srv import GetPose, GetPoseResponse
@@ -73,6 +74,14 @@ def all_close(goal, actual, tolerance):
         return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
 
     return True
+
+def pose_to_list(pose_msg):
+    pose_list = []
+    pose.append(pose_msg.position.x)
+    pose.append(pose_msg.position.y)
+    pose.append(pose_msg.position.z)
+    pose += tfs.euler_from_quaternion(np.array([pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w]))
+    return pose_list
 
 class InverseKinematics(object):
     def __init__(self):
