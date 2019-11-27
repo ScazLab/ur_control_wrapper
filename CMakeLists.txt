@@ -64,6 +64,7 @@ find_package(catkin REQUIRED COMPONENTS
    GetJoints.srv
    SetTrajectory.srv
    AddBox.srv
+   ForwardKinematics.srv
  )
 
 ## Generate actions in the 'action' folder

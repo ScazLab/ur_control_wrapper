@@ -42,6 +42,7 @@ To run the demo, launch: `demo.launch` or run demo.py directly with rosrun if ur
 - set trajectory
 - add box
 - check pose
+- forward kinematics
 
 ## Notes:
 

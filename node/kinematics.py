@@ -46,7 +46,7 @@ import moveit_msgs.msg
 import geometry_msgs.msg
 import sensor_msgs.msg
 from math import pi
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
 
 from ur_control_wrapper.srv import SetPose, SetPoseResponse
 from ur_control_wrapper.srv import GetPose, GetPoseResponse
@@ -54,8 +54,8 @@ from ur_control_wrapper.srv import CheckPose, CheckPoseResponse
 from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
-
 from ur_control_wrapper.srv import AddBox, AddBoxResponse
+from ur_control_wrapper.srv import ForwardKinematics, ForwardKinematicsResponse
 
 def all_close(goal, actual, tolerance):
     """
@@ -93,9 +93,9 @@ def pose_to_list(pose_msg):
     pose_list += tfs.euler_from_quaternion(np.array([pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w]))
     return pose_list
 
-class InverseKinematics(object):
+class Kinematics(object):
     def __init__(self):
-        super(InverseKinematics, self).__init__()
+        super(Kinematics, self).__init__()
 
         moveit_commander.roscpp_initialize(sys.argv)
 
@@ -144,6 +144,7 @@ class InverseKinematics(object):
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
         rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
         rospy.Service('/ur_control_wrapper/add_box', AddBox, self.add_box)
+        rospy.Service('/ur_control_wrapper/forward_kinematics', ForwardKinematics, self.forward_kinematics)
     
     def convert_joint_msg_to_list(self, joint_msg):
         joint_names = joint_msg.name
@@ -261,6 +262,21 @@ class InverseKinematics(object):
         scene = self.scene
 
         scene.add_plane(name, pose, normal, offset)
+
+    def forward_kinematics(self, data):
+        # https://groups.google.com/forum/#!topic/moveit-users/Wb7TqHuf-ig
+        pose = None
+        rospy.wait_for_service('compute_fk')
+        try:
+            fk = rospy.ServiceProxy('compute_fk', moveit_msgs.msg.GetPositionFK)
+            header = Header(0, rospy.Time.now(), "/world")
+            fk_link_names = [self.move_group.get_end_effector_link()]
+            robot_state = self.robot.get_current_state()
+            pose = fk(header, fk_link_names, robot_state).pose_stamped[0].pose
+        except rospy.ServiceException, e:
+            rospy.logerror("Service call failed: %s"%e)
+        
+        return pose
 
     def display_trajectory(self, plan):
         # Copy class variables to local variables to make the web tutorials more clear.
@@ -414,9 +430,9 @@ class InverseKinematics(object):
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('ur_control_wrapper_inverse_kinematics', anonymous=True)
+        rospy.init_node('ur_control_wrapper_kinematics', anonymous=True)
 
-        inverse_kinematics = InverseKinematics()
+        kinematics = Kinematics()
 
         rospy.spin()
     except rospy.ROSInterruptException:
