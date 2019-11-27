@@ -182,6 +182,7 @@ class InverseKinematics(object):
         pose_goal = data.request_pose
 
         (plan, fraction) = move_group.compute_cartesian_path([pose_goal], 10.0, 0.0)
+        plan = plan.joint_trajectory
         
         move_group.clear_pose_targets()
         
