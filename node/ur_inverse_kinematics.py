@@ -257,14 +257,15 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     wpose = move_group.get_current_pose().pose
     wpose.position.z -= scale * 0.1  # First move up (z)
-    wpose.position.y += scale * 0.2  # and sideways (y)
+    #wpose.position.y += scale * 0.2  # and sideways (y)
+    wpose.position.y = 0.5
     waypoints.append(copy.deepcopy(wpose))
 
-    wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
-    waypoints.append(copy.deepcopy(wpose))
+    #wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
+    #waypoints.append(copy.deepcopy(wpose))
 
-    wpose.position.y -= scale * 0.1  # Third move sideways (y)
-    waypoints.append(copy.deepcopy(wpose))
+    #wpose.position.y -= scale * 0.1  # Third move sideways (y)
+    #waypoints.append(copy.deepcopy(wpose))
 
     # We want the Cartesian path to be interpolated at a resolution of 1 cm
     # which is why we will specify 0.01 as the eef_step in Cartesian
@@ -273,10 +274,16 @@ class MoveGroupPythonIntefaceTutorial(object):
     # for this tutorial.
     (plan, fraction) = move_group.compute_cartesian_path(
                                        waypoints,   # waypoints to follow
-                                       0.01,        # eef_step
+                                       10.0,        # eef_step
                                        0.0)         # jump_threshold
 
     # Note: We are just planning, not asking move_group to actually move the robot yet:
+    print "plan"
+    print plan
+    print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11"
+    print "fraction"
+    print fraction
+    
     return plan, fraction
 
     ## END_SUB_TUTORIAL
@@ -478,17 +485,17 @@ def main():
     raw_input()
     tutorial = MoveGroupPythonIntefaceTutorial()
 
-    print "============ Press `Enter` to execute a movement using a joint state goal ..."
-    raw_input()
-    tutorial.go_to_joint_state()
+    #print "============ Press `Enter` to execute a movement using a joint state goal ..."
+    #raw_input()
+    #tutorial.go_to_joint_state()
 
     #print "============ Press `Enter` to execute a movement using a pose goal ..."
     #raw_input()
     #tutorial.go_to_pose_goal()
 
-    #print "============ Press `Enter` to plan and display a Cartesian path ..."
-    #raw_input()
-    #cartesian_plan, fraction = tutorial.plan_cartesian_path()
+    print "============ Press `Enter` to plan and display a Cartesian path ..."
+    raw_input()
+    cartesian_plan, fraction = tutorial.plan_cartesian_path()
 
     #print "============ Press `Enter` to display a saved trajectory (this will replay the Cartesian path)  ..."
     #raw_input()

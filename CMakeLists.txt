@@ -59,6 +59,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    SetPose.srv
    GetPose.srv
+   CheckPose.srv
    SetJoints.srv
    GetJoints.srv
    SetTrajectory.srv

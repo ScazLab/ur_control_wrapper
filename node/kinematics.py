@@ -50,6 +50,7 @@ from std_msgs.msg import String
 
 from ur_control_wrapper.srv import SetPose, SetPoseResponse
 from ur_control_wrapper.srv import GetPose, GetPoseResponse
+from ur_control_wrapper.srv import CheckPose, CheckPoseResponse
 from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
@@ -137,6 +138,7 @@ class InverseKinematics(object):
         self.joint_names = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint', 'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
         
         rospy.Service('/ur_control_wrapper/set_pose', SetPose, self.set_pose)
+        rospy.Service('/ur_control_wrapper/check_pose', CheckPose, self.check_pose)
         rospy.Service('/ur_control_wrapper/get_pose', GetPose, self.get_pose)
         rospy.Service('/ur_control_wrapper/set_joints', SetJoints, self.set_joints)
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
@@ -158,21 +160,14 @@ class InverseKinematics(object):
         return GetJointsResponse(self.convert_joint_list_to_message(self.move_group.get_current_joint_values()))
 
     def set_joints(self, data):
-        # Copy class variables to local variables to make the web tutorials more clear.
-        # In practice, you should use the class variables directly unless you have a good
-        # reason not to.
         move_group = self.move_group
 
         joints = self.convert_joint_msg_to_list(data.request_joints)
 
-        # The go command can be called with joint values, poses, or without any
-        # parameters if you have already set the pose or joint target for the group
         move_group.go(joints, wait=True)
 
-        # Calling ``stop()`` ensures that there is no residual movement
         move_group.stop()
 
-        # For testing:
         current_joints = move_group.get_current_joint_values()
         
         is_reached = all_close(joints, current_joints, 0.01)
@@ -181,6 +176,30 @@ class InverseKinematics(object):
 
     def get_pose(self, data):
         return GetPoseResponse(self.move_group.get_current_pose().pose)
+
+    def check_pose(self, data):
+        move_group = self.move_group
+        pose_goal = data.request_pose
+
+        (plan, fraction) = move_group.compute_cartesian_path([pose_goal], 10.0, 0.0)
+        
+        move_group.clear_pose_targets()
+        
+        joint_names = plan.joint_names
+        joints = plan.points[-1].positions
+        
+        msg = sensor_msgs.msg.JointState()
+        msg.name = plan.joint_names
+        msg.position = joints
+        
+        current_angle = self.convert_joint_msg_to_list(self.convert_joint_list_to_message(self.move_group.get_current_joint_values())) # to ensure the name list sequence is the same
+        planned_angle = self.convert_joint_msg_to_list(msg) # to ensure the name list sequence is the same
+        changes = abs(np.array(planned_angle) - np.array(current_angle))
+        
+        could_reach = len(plan.points) > 1
+        joint_changes = sum(changes)
+        
+        return CheckPoseResponse(could_reach, joint_changes, msg)
 
     def set_pose(self, data):
         # Copy class variables to local variables to make the web tutorials more clear.
