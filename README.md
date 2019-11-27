@@ -40,7 +40,8 @@ To run the demo, launch: `demo.launch` or run demo.py directly with rosrun if ur
 
 ## new functions to be documented:
 - set trajectory
-- add plane
+- add box
+- check pose
 
 ## Notes:
 
