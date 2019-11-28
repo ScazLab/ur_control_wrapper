@@ -55,7 +55,8 @@ from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
 from ur_control_wrapper.srv import AddBox, AddBoxResponse
-from ur_control_wrapper.srv import ForwardKinematics, ForwardKinematicsResponse
+#from ur_control_wrapper.srv import ForwardKinematics, ForwardKinematicsResponse
+from ur_control_wrapper.srv import GetInterpolatePoints, GetInterpolatePointsResponse
 
 def all_close(goal, actual, tolerance):
     """
@@ -144,7 +145,8 @@ class Kinematics(object):
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
         rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
         rospy.Service('/ur_control_wrapper/add_box', AddBox, self.add_box)
-        rospy.Service('/ur_control_wrapper/forward_kinematics', ForwardKinematics, self.forward_kinematics)
+        #rospy.Service('/ur_control_wrapper/forward_kinematics', ForwardKinematics, self.forward_kinematics)
+        rospy.Service('/ur_control_wrapper/get_interpolate_points', GetInterpolatePoints, self.get_interpolate_points)
     
     def convert_joint_msg_to_list(self, joint_msg):
         joint_names = joint_msg.name
@@ -200,6 +202,8 @@ class Kinematics(object):
         
         could_reach = len(plan.points) > 1
         joint_changes = sum(changes)
+        
+        move_group.clear_pose_targets()
         
         return CheckPoseResponse(could_reach, joint_changes, msg)
 
@@ -263,7 +267,7 @@ class Kinematics(object):
 
         scene.add_plane(name, pose, normal, offset)
 
-    def forward_kinematics(self, data):
+    def forward_kinematics(self, joint_state_msg):
         # https://groups.google.com/forum/#!topic/moveit-users/Wb7TqHuf-ig
         pose = None
         rospy.wait_for_service('compute_fk')
@@ -272,11 +276,33 @@ class Kinematics(object):
             header = Header(0, rospy.Time.now(), "/world")
             fk_link_names = [self.move_group.get_end_effector_link()]
             robot_state = self.robot.get_current_state()
+            robot_state.joint_state = joint_state_msg
             pose = fk(header, fk_link_names, robot_state).pose_stamped[0].pose
         except rospy.ServiceException, e:
             rospy.logerror("Service call failed: %s"%e)
         
         return pose
+
+    def get_interpolate_points(self, data):
+        move_group = self.move_group
+        (plan, fraction) = move_group.compute_cartesian_path([data.start, data.end], data.step, 0.0)
+        plan = plan.joint_trajectory
+        
+        move_group.clear_pose_targets()
+        
+        joint_names = plan.joint_names
+        
+        poses = []
+        
+        for joints in plan.points:
+            msg = sensor_msgs.msg.JointState()
+            msg.name = plan.joint_names
+            msg.position = joints.positions
+            pose_msg = forward_kinematics(msg)
+            poses.pose_msg
+            move_group.clear_pose_targets()
+        
+        return GetInterpolatePointsResponse(poses)
 
     def display_trajectory(self, plan):
         # Copy class variables to local variables to make the web tutorials more clear.
