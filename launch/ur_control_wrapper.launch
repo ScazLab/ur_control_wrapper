@@ -7,7 +7,7 @@
 
     <node pkg="ur_control_wrapper" name="gripper_controller" type="gripper_controller.py" output="screen" />
 
-    <node pkg="ur_control_wrapper" name="kinematics" type="kinematics.py" output="screen" />
+    <node pkg="ur_control_wrapper" name="ur_kinematics" type="ur_kinematics.py" output="screen" />
 
 </launch>
 
