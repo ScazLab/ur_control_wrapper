@@ -72,7 +72,7 @@ class Demo:
     def run(self):
         while not rospy.is_shutdown():
             print "====================================================="
-            command_input = raw_input("Freedrive: fs(start);\nfe-end: Gripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nGo to Default Position: d; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
+            command_input = raw_input("Freedrive: fs(start);fe-end: \nGripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nGo to Default Position: d; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
             if command_input == "fs":
                 self.free_drive_pub.publish(True)
             elif command_input == "fe":
