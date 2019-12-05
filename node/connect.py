@@ -7,6 +7,8 @@ from std_msgs.msg import String, Bool
 
 class ExternalControl:
     def __init__(self):
+        self.is_simulator = rospy.get_param("sim")
+        
         self.connect_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
         self.external_control = self.get_external_control_command()
         
@@ -47,7 +49,7 @@ class ExternalControl:
         return commands + "\n"
     
     def connect_to_robot(self, data):
-        if data.data:
+        if not self.is_simulator and data.data:
             self.connect_pub.publish(self.external_control)
 
 if __name__ == '__main__':
