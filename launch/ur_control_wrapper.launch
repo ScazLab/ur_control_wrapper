@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="simulator_mode" default="false"/>
+    <param name="sim" value="$(arg simulator_mode)"/>
   
     <node pkg="ur_control_wrapper" name="connect" type="connect.py" output="screen" />
 

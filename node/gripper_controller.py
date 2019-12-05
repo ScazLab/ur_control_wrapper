@@ -9,6 +9,8 @@ class Gripper:
     def __init__(self):
         # to update?? open/close with https://github.com/ctaipuj/luc_control/blob/master/robotiq_85_control/src/gripper_ur_control.cpp
 
+        self.is_simulator = rospy.get_param("sim")
+
         self.gripper_pub = rospy.Publisher("/ur_hardware_interface/script_command", String, queue_size=10)
         self.connect_pub = rospy.Publisher("/ur_hardware_interface/connect", String, queue_size=10)
         self.gripper_commands = self.get_gripper_command()
@@ -29,18 +31,20 @@ class Gripper:
         return commands + "\n"
 
     def activate_gripper(self):
-        command = self.gripper_commands.replace(self.command, "rq_activate_and_wait()")
-        self.gripper_pub.publish(command)
-        rospy.sleep(0.1)
-        self.connect_pub.publish(True)
+        if not self.is_simulator:
+            command = self.gripper_commands.replace(self.command, "rq_activate_and_wait()")
+            self.gripper_pub.publish(command)
+            rospy.sleep(0.1)
+            self.connect_pub.publish(True)
 
     def control(self, data):
-        if data.data:
-            self.open_gripper()
-        else:
-            self.close_gripper()
-        rospy.sleep(0.1)
-        self.connect_pub.publish(True)        
+        if not self.is_simulator:
+            if data.data:
+                self.open_gripper()
+            else:
+                self.close_gripper()
+            rospy.sleep(0.1)
+            self.connect_pub.publish(True)
 
     def open_gripper(self):
         command = self.gripper_commands.replace(self.command, "rq_open()")
@@ -51,10 +55,11 @@ class Gripper:
         self.gripper_pub.publish(command)
 
     def deactivate_gripper(self):
-        command = self.gripper_commands.replace(self.command, "")
-        self.gripper_pub.publish(command)
-        rospy.sleep(0.1)
-        self.connect_pub.publish(True)        
+        if not self.is_simulator:
+            command = self.gripper_commands.replace(self.command, "")
+            self.gripper_pub.publish(command)
+            rospy.sleep(0.1)
+            self.connect_pub.publish(True)        
 
 if __name__ == '__main__':
     try:
