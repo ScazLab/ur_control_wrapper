@@ -55,6 +55,9 @@ from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
 from ur_control_wrapper.srv import AddBox, AddBoxResponse
+from ur_control_wrapper.srv import AttachBox, AttachBoxResponse
+from ur_control_wrapper.srv import DetachBox, DetachBoxResponse
+from ur_control_wrapper.srv import RemoveBox, RemoveBoxResponse
 #from ur_control_wrapper.srv import ForwardKinematics, ForwardKinematicsResponse
 from ur_control_wrapper.srv import GetInterpolatePoints, GetInterpolatePointsResponse
 
@@ -145,6 +148,9 @@ class Kinematics(object):
         rospy.Service('/ur_control_wrapper/get_joints', GetJoints, self.get_joints)
         rospy.Service('/ur_control_wrapper/follow_trajectory', SetTrajectory, self.set_trajectory)
         rospy.Service('/ur_control_wrapper/add_box', AddBox, self.add_box)
+        rospy.Service('/ur_control_wrapper/attach_box', AttachBox, self.attach_box)
+        rospy.Service('/ur_control_wrapper/detach_box', DetachBox, self.detach_box)
+        rospy.Service('/ur_control_wrapper/remove_box', RemoveBox, self.remove_box)
         #rospy.Service('/ur_control_wrapper/forward_kinematics', ForwardKinematics, self.forward_kinematics)
         rospy.Service('/ur_control_wrapper/get_interpolate_points', GetInterpolatePoints, self.get_interpolate_points)
     
@@ -371,7 +377,6 @@ class Kinematics(object):
         return False
         ## END_SUB_TUTORIAL
 
-
     def add_box(self, data):
         timeout = 4
         scene = self.scene
@@ -384,75 +389,128 @@ class Kinematics(object):
         scene.add_box(box_name, box_pose, size=box_size)
 
         return AddBoxResponse(self.wait_for_state_update(box_is_known=True, timeout=timeout))
-
-    def attach_box(self, timeout=4):
-        # Copy class variables to local variables to make the web tutorials more clear.
-        # In practice, you should use the class variables directly unless you have a good
-        # reason not to.
-        box_name = self.box_name
-        robot = self.robot
+    
+    def attach_box(self, data):
+        timeout = 4
         scene = self.scene
+        
+        # add box
+        box_pose = geometry_msgs.msg.PoseStamped()
+        box_pose.header.frame_id = "world"
+        box_pose.pose = data.pose
+        box_name = data.name
+        box_size = (data.size.x, data.size.y, data.size.z)
+        scene.add_box(box_name, box_pose, size=box_size)
+        
+        self.wait_for_state_update(box_is_known=True, timeout=timeout)
+        
+        # attach box
+        robot = self.robot
         eef_link = self.eef_link
         group_names = self.group_names
 
-        ## BEGIN_SUB_TUTORIAL attach_object
-        ##
-        ## Attaching Objects to the Robot
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        ## Next, we will attach the box to the Panda wrist. Manipulating objects requires the
-        ## robot be able to touch them without the planning scene reporting the contact as a
-        ## collision. By adding link names to the ``touch_links`` array, we are telling the
-        ## planning scene to ignore collisions between those links and the box. For the Panda
-        ## robot, we set ``grasping_group = 'hand'``. If you are using a different robot,
-        ## you should change this value to the name of your end effector group name.
-        grasping_group = 'hand'
+        grasping_group = 'endeffector'
         touch_links = robot.get_link_names(group=grasping_group)
         scene.attach_box(eef_link, box_name, touch_links=touch_links)
-        ## END_SUB_TUTORIAL
 
-        # We wait for the planning scene to update.
-        return self.wait_for_state_update(box_is_attached=True, box_is_known=False, timeout=timeout)
+        return AttachBoxResponse(self.wait_for_state_update(box_is_attached=True, box_is_known=False, timeout=timeout))
 
+    #def attach_box(self, timeout=4):
+        ## Copy class variables to local variables to make the web tutorials more clear.
+        ## In practice, you should use the class variables directly unless you have a good
+        ## reason not to.
+        #box_name = self.box_name
+        #robot = self.robot
+        #scene = self.scene
+        #eef_link = self.eef_link
+        #group_names = self.group_names
 
-    def detach_box(self, timeout=4):
+        ### BEGIN_SUB_TUTORIAL attach_object
+        ###
+        ### Attaching Objects to the Robot
+        ### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ### Next, we will attach the box to the Panda wrist. Manipulating objects requires the
+        ### robot be able to touch them without the planning scene reporting the contact as a
+        ### collision. By adding link names to the ``touch_links`` array, we are telling the
+        ### planning scene to ignore collisions between those links and the box. For the Panda
+        ### robot, we set ``grasping_group = 'hand'``. If you are using a different robot,
+        ### you should change this value to the name of your end effector group name.
+        #grasping_group = 'hand'
+        #touch_links = robot.get_link_names(group=grasping_group)
+        #scene.attach_box(eef_link, box_name, touch_links=touch_links)
+        ### END_SUB_TUTORIAL
+
+        ## We wait for the planning scene to update.
+        #return self.wait_for_state_update(box_is_attached=True, box_is_known=False, timeout=timeout)
+
+    def detach_box(self, data):
         # Copy class variables to local variables to make the web tutorials more clear.
         # In practice, you should use the class variables directly unless you have a good
         # reason not to.
-        box_name = self.box_name
+        timeout = 4
+        
+        # detach box
+        box_name = data.box_name
         scene = self.scene
         eef_link = self.eef_link
 
-        ## BEGIN_SUB_TUTORIAL detach_object
-        ##
-        ## Detaching Objects from the Robot
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        ## We can also detach and remove the object from the planning scene:
         scene.remove_attached_object(eef_link, name=box_name)
-        ## END_SUB_TUTORIAL
+        
+        self.wait_for_state_update(box_is_known=True, box_is_attached=False, timeout=timeout)
 
-        # We wait for the planning scene to update.
-        return self.wait_for_state_update(box_is_known=True, box_is_attached=False, timeout=timeout)
+        # remove box
+        scene.remove_world_object(box_name)
 
+        return DetachBoxResponse(self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout))
 
-    def remove_box(self, timeout=4):
-        # Copy class variables to local variables to make the web tutorials more clear.
-        # In practice, you should use the class variables directly unless you have a good
-        # reason not to.
+    #def detach_box(self, timeout=4):
+        ## Copy class variables to local variables to make the web tutorials more clear.
+        ## In practice, you should use the class variables directly unless you have a good
+        ## reason not to.
+        #box_name = self.box_name
+        #scene = self.scene
+        #eef_link = self.eef_link
+
+        ### BEGIN_SUB_TUTORIAL detach_object
+        ###
+        ### Detaching Objects from the Robot
+        ### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ### We can also detach and remove the object from the planning scene:
+        #scene.remove_attached_object(eef_link, name=box_name)
+        ### END_SUB_TUTORIAL
+
+        ## We wait for the planning scene to update.
+        #return self.wait_for_state_update(box_is_known=True, box_is_attached=False, timeout=timeout)
+
+    def remove_box(self, data):
+        timeout = 4
         box_name = self.box_name
         scene = self.scene
 
-        ## BEGIN_SUB_TUTORIAL remove_object
-        ##
-        ## Removing Objects from the Planning Scene
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        ## We can remove the box from the world.
         scene.remove_world_object(box_name)
 
-        ## **Note:** The object must be detached before we can remove it from the world
-        ## END_SUB_TUTORIAL
-
         # We wait for the planning scene to update.
-        return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
+        return RemoveBoxResponse(self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout))
+
+    #def remove_box(self, timeout=4):
+        # Copy class variables to local variables to make the web tutorials more clear.
+        # In practice, you should use the class variables directly unless you have a good
+        # reason not to.
+        #box_name = self.box_name
+        #scene = self.scene
+
+        ### BEGIN_SUB_TUTORIAL remove_object
+        ###
+        ### Removing Objects from the Planning Scene
+        ### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ### We can remove the box from the world.
+        #scene.remove_world_object(box_name)
+
+        ### **Note:** The object must be detached before we can remove it from the world
+        ### END_SUB_TUTORIAL
+
+        ## We wait for the planning scene to update.
+        #return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
 
 if __name__ == '__main__':
     try:

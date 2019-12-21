@@ -8,6 +8,11 @@ from ur_control_wrapper.srv import GetPose
 from ur_control_wrapper.srv import GetJoints
 from ur_control_wrapper.srv import SetJoints
 
+from ur_control_wrapper.srv import AddBox
+from ur_control_wrapper.srv import AttachBox
+from ur_control_wrapper.srv import Detachbox
+from ur_control_wrapper.srv import RemoveBox
+
 class Demo:
     def __init__(self):
         self.free_drive_pub = rospy.Publisher("/ur_control_wrapper/enable_freedrive", Bool, queue_size=10)
@@ -45,6 +50,46 @@ class Demo:
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)      
     
+    def add_box(self):
+        rospy.wait_for_service("/ur_control_wrapper/add_box")
+        add_box = rospy.ServiceProxy("/ur_control_wrapper/add_box", AddBox)
+        try:
+            name = "object"
+            pose = Pose(Point(-0.34, -0.0075, -0.023), Quaternion(0.0, 0.0, 0.0, 1.0))
+            size = Vector3(0.02, 0.02, 0.02)
+            response = add_box(name, pose, size).is_success
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc)
+    
+    def attach_box(self):
+        rospy.wait_for_service("/ur_control_wrapper/attach_box")
+        attach_box = rospy.ServiceProxy("/ur_control_wrapper/attach_box", AttachBox)
+        try:
+            name = "tool"
+            pose = Pose(Point(-0.34, -0.0075, -0.023), Quaternion(0.0, 0.0, 0.0, 1.0))
+            size = Vector3(0.02, 0.02, 0.02)
+            response = attach_box(name, pose, size).is_success
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc)
+    
+    def detach_box(self):
+        rospy.wait_for_service("/ur_control_wrapper/detach_box")
+        detach_box = rospy.ServiceProxy("/ur_control_wrapper/detach_box", DetachBox)
+        try:
+            name = "tool"
+            response = detach_box(name, pose, size).is_success
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc)
+    
+    def remove_box(self):
+        rospy.wait_for_service("/ur_control_wrapper/remove_box")
+        remove_box = rospy.ServiceProxy("/ur_control_wrapper/remove_box", RemoveBox)
+        try:
+            name = "object"
+            response = remove_box(name).is_success
+        except rospy.ServiceException as exc:
+            print "Service did not process request: " + str(exc)
+    
     def move_arm(self, direction):
         current_pose = self.get_pose()
         
@@ -72,7 +117,7 @@ class Demo:
     def run(self):
         while not rospy.is_shutdown():
             print "====================================================="
-            command_input = raw_input("Freedrive: fs(start);fe-end: \nGripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nGo to Default Position: d; \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
+            command_input = raw_input("Freedrive: fs(start);fe-end: \nGripper: go(open); gc(close);\nConnect: c(connect);\nGet End Effector Pose: ep; \nGet joint angles: ja; \nGo to Default Position: d; \nBoxes: ab(add box); atb(attach box); db(detach box); rb(remove box) \nMove arm: x+(x direction move up 5 cm); x-; y+; y-; z+; z-: \n")
             if command_input == "fs":
                 self.free_drive_pub.publish(True)
             elif command_input == "fe":
@@ -89,6 +134,14 @@ class Demo:
                 print self.get_angle()
             elif command_input == "d":
                 self.set_default_angles()
+            elif command_input == "ab":
+                self.add_box()
+            elif command_input == "atb":
+                self.attach_box()
+            elif command_input == "db":
+                self.detach_box()
+            elif command_input == "rb":
+                self.remove_box()
             else: # move arm
                 direction = command_input
                 self.move_arm(direction)

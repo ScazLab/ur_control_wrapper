@@ -64,6 +64,9 @@ find_package(catkin REQUIRED COMPONENTS
    GetJoints.srv
    SetTrajectory.srv
    AddBox.srv
+   AttachBox.srv
+   DetachBox.srv
+   RemoveBox.srv
    ForwardKinematics.srv
    GetInterpolatePoints.srv
  )
