@@ -54,7 +54,7 @@ from ur_control_wrapper.srv import CheckPose, CheckPoseResponse
 from ur_control_wrapper.srv import SetJoints, SetJointsResponse
 from ur_control_wrapper.srv import GetJoints, GetJointsResponse
 from ur_control_wrapper.srv import SetTrajectory, SetTrajectoryResponse
-from ur_control_wrapper.srv import AddObject, AddObjectResponse
+from ur_control_wrapper.srv import AddObject, AddObjectResponse, AddObjectRequest
 from ur_control_wrapper.srv import AttachObject, AttachObjectResponse
 from ur_control_wrapper.srv import DetachObject, DetachObjectResponse
 from ur_control_wrapper.srv import RemoveObject, RemoveObjectResponse
@@ -387,10 +387,10 @@ class Kinematics(object):
         object_name = data.object_name
         object_type = data.object_type
         
-        if object_type == AddObject.TYPE_BOX:
+        if object_type == AddObjectRequest.TYPE_BOX:
             box_size = (data.size.x, data.size.y, data.size.z)
-            scene.add_box(box_name, box_pose, size=box_size)
-        elif object_type == AddObject.TYPE_CYLINDER:
+            scene.add_box(object_name, object_pose, size=box_size)
+        elif object_type == AddObjectRequest.TYPE_CYLINDER:
             height = data.size.x
             radius = data.size.y
             scene.add_cylinder(object_name, object_pose, height, radius)
@@ -400,28 +400,37 @@ class Kinematics(object):
         return AddObjectResponse(self.wait_for_state_update(object_name, object_is_known=True, timeout=timeout))
 
     def attach_object(self, data):
+        print "in attach object"
+        
         timeout = 4
         scene = self.scene
         
         object_name = data.object_name
         # already attached
-        if self.wait_for_state_update(object_name, object_is_known=False, object_is_attached=True, timeout=timeout):
-            return AttachBoxResponse(True)
+        if self.wait_for_state_update(object_name, object_is_known=False, object_is_attached=True, timeout=1):
+            print "already attached"
+            return AttachObjectResponse(True)
         # not in the workspace
-        elif not self.wait_for_state_update(object_name, object_is_known=True, object_is_attached=False, timeout=timeout):
+        elif not self.wait_for_state_update(object_name, object_is_known=True, object_is_attached=False, timeout=1):
+            print "not in the workspace add it first!"
             # add object
+            print "wait for service"
             rospy.wait_for_service("/ur_control_wrapper/add_object")
-            add_box = rospy.ServiceProxy("/ur_control_wrapper/add_object", AddObject)
+            print "service found!"
+            add_object = rospy.ServiceProxy("/ur_control_wrapper/add_object", AddObject)
             try:
                 name = object_name
                 pose = data.pose
                 size = data.size
                 object_type = data.object_type
-                response = add_box(name, pose, size, object_type).is_success
+                response = add_object(name, pose, size, object_type).is_success
             except rospy.ServiceException as exc:
                 print "Service did not process request: " + str(exc)
             if not response:
+                print "object not added to world successfully"
                 return AttachObjectResponse(False)
+        
+        print "object added"
         
         # now in the workspace but not attached
         # attach object
@@ -433,7 +442,9 @@ class Kinematics(object):
         touch_links = robot.get_link_names(group=grasping_group)
         scene.attach_box(eef_link, object_name, touch_links=touch_links)
 
-        return AttachObjectResponse(self.wait_for_state_update(box_is_attached=True, box_is_known=False, timeout=timeout))
+        print "object attched, wait to be updated!"
+        
+        return AttachObjectResponse(self.wait_for_state_update(object_name, object_is_attached=True, object_is_known=False, timeout=timeout))
 
     def detach_object(self, data):
         # Copy class variables to local variables to make the web tutorials more clear.
@@ -464,7 +475,7 @@ class Kinematics(object):
         scene.remove_world_object(object_name)
 
         # We wait for the planning scene to update.
-        return RemoveBoxResponse(self.wait_for_state_update(object_name, object_is_attached=False, object_is_known=False, timeout=timeout))
+        return RemoveObjectResponse(self.wait_for_state_update(object_name, object_is_attached=False, object_is_known=False, timeout=timeout))
 
     #def remove_box(self, timeout=4):
         # Copy class variables to local variables to make the web tutorials more clear.
