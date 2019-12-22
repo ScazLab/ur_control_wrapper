@@ -8,10 +8,10 @@ from ur_control_wrapper.srv import GetPose
 from ur_control_wrapper.srv import GetJoints
 from ur_control_wrapper.srv import SetJoints
 
-from ur_control_wrapper.srv import AddBox
-from ur_control_wrapper.srv import AttachBox
-from ur_control_wrapper.srv import Detachbox
-from ur_control_wrapper.srv import RemoveBox
+from ur_control_wrapper.srv import AddObject
+from ur_control_wrapper.srv import AttachObject
+from ur_control_wrapper.srv import DetachObject
+from ur_control_wrapper.srv import RemoveObject
 
 class Demo:
     def __init__(self):
@@ -51,41 +51,43 @@ class Demo:
             print "Service did not process request: " + str(exc)      
     
     def add_box(self):
-        rospy.wait_for_service("/ur_control_wrapper/add_box")
-        add_box = rospy.ServiceProxy("/ur_control_wrapper/add_box", AddBox)
+        rospy.wait_for_service("/ur_control_wrapper/add_object")
+        add_box = rospy.ServiceProxy("/ur_control_wrapper/add_object", AddObject)
         try:
-            name = "object"
+            name = "box_object"
             pose = Pose(Point(-0.34, -0.0075, -0.023), Quaternion(0.0, 0.0, 0.0, 1.0))
             size = Vector3(0.02, 0.02, 0.02)
-            response = add_box(name, pose, size).is_success
+            object_type = AddObject.TYPE_BOX
+            response = add_box(name, pose, size, object_type).is_success
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
     
     def attach_box(self):
-        rospy.wait_for_service("/ur_control_wrapper/attach_box")
-        attach_box = rospy.ServiceProxy("/ur_control_wrapper/attach_box", AttachBox)
+        rospy.wait_for_service("/ur_control_wrapper/attach_object")
+        attach_box = rospy.ServiceProxy("/ur_control_wrapper/attach_object", Attachobject)
         try:
-            name = "tool"
+            name = "box_tool"
             pose = Pose(Point(-0.34, -0.0075, -0.023), Quaternion(0.0, 0.0, 0.0, 1.0))
             size = Vector3(0.02, 0.02, 0.02)
-            response = attach_box(name, pose, size).is_success
+            object_type = AddObject.TYPE_BOX
+            response = attach_box(name, pose, size, object_type).is_success
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
     
     def detach_box(self):
-        rospy.wait_for_service("/ur_control_wrapper/detach_box")
-        detach_box = rospy.ServiceProxy("/ur_control_wrapper/detach_box", DetachBox)
+        rospy.wait_for_service("/ur_control_wrapper/detach_object")
+        detach_box = rospy.ServiceProxy("/ur_control_wrapper/detach_object", DetachObject)
         try:
-            name = "tool"
-            response = detach_box(name, pose, size).is_success
+            name = "box_tool"
+            response = detach_box(name).is_success
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
     
     def remove_box(self):
         rospy.wait_for_service("/ur_control_wrapper/remove_box")
-        remove_box = rospy.ServiceProxy("/ur_control_wrapper/remove_box", RemoveBox)
+        remove_box = rospy.ServiceProxy("/ur_control_wrapper/remove_box", RemoveObject)
         try:
-            name = "object"
+            name = "box_object"
             response = remove_box(name).is_success
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
