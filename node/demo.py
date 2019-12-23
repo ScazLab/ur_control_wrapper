@@ -86,7 +86,7 @@ class Demo:
         detach_box = rospy.ServiceProxy("/ur_control_wrapper/detach_object", DetachObject)
         try:
             name = "box_tool"
-            response = detach_box(name).is_success
+            response = detach_box(name, True).is_success
         except rospy.ServiceException as exc:
             print "Service did not process request: " + str(exc)
     

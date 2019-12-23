@@ -460,12 +460,14 @@ class Kinematics(object):
         scene.remove_attached_object(eef_link, name=object_name)
         
         if not self.wait_for_state_update(object_name, object_is_known=True, object_is_attached=False, timeout=timeout):
-            return DetachBoxResponse(False)
+            return DetachObjectResponse(False)
 
         # remove box
-        scene.remove_world_object(object_name)
+        if data.to_remove:
+            scene.remove_world_object(object_name)
+            return DetachObjectResponse(self.wait_for_state_update(object_name, object_is_attached=False, object_is_known=False, timeout=timeout))
 
-        return DetachObjectResponse(self.wait_for_state_update(object_name, object_is_attached=False, object_is_known=False, timeout=timeout))
+        return DetachObjectResponse(True)
 
     def remove_object(self, data):
         timeout = 4
