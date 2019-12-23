@@ -247,9 +247,15 @@ class Kinematics(object):
         is_reached = all_close(pose_goal, current_pose, 0.01)
         return SetPoseResponse(is_reached, current_pose)
     
+    # DO NOT ADD THE THe INITIAL POINT if it is the same as the current one!! (this is a moveit bug)
+    # https://answers.ros.org/question/253004/moveit-problem-error-trajectory-message-contains-waypoints-that-are-not-strictly-increasing-in-time/
     def set_trajectory(self, data):
         move_group = self.move_group
         (plan, fraction) = move_group.compute_cartesian_path(data.trajectory, 0.01, 0.0)
+        
+        #print "trajectory planned by moveit"
+        #print plan
+        
         move_group.execute(plan, wait=True)
         
         move_group.stop()

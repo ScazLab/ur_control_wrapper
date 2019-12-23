@@ -10,6 +10,8 @@ The control currently include the following functionalities:
 - get/set the end effector pose (e.g., kinematics and inverse kinematics)
 - open/close the gripper
 - start/end the freedrive mode
+- follow a trajectory
+- add/remove, attach/detach an object
 
 ## Usage:
 
@@ -19,7 +21,7 @@ Launch the ros driver launch file and moveit launch file
 
 Then launch `ur_control_wrapper.launch` 
 
-Or you can run `ur5e_cam_2f85_control.launch` without running the three launch files mentioned above.
+Or you can run `ur5e_cam_2f85_control.launch` without running the three launch files mentioned above. Or `sim_ur5e_cam_2f85_control.launch` if you works with the simulator.
 
 It has the following topics:
 
@@ -33,16 +35,18 @@ It runs the folliwng services:
 - /ur_control_wrapper/get_pose: get the end effector pose
 - /ur_control_wrapper/set_joints: set the joint angles
 - /ur_control_wrapper/set_pose: set the end effector pose
+- /ur_control_wrapper/check_pose: check whether a pose could be reached
+- /ur_control_wrapper/follow_trajectory: follow a trajectory. NOTE: do not add the starting pose if it is the same as the current pose. This is a moveit bug. [https://answers.ros.org/question/253004/moveit-problem-error-trajectory-message-contains-waypoints-that-are-not-strictly-increasing-in-time/]
+- /ur_control_wrapper/add_object: add an object to scene. Currently support Box and Cylinder. For cylinder, the size is (height, radius, not use)
+- /ur_control_wrapper/attach_object: attach an object to the end effector (there is no need to call add object as it already handles it). Currently support Box and Cylinder.
+- /ur_control_wrapper/detach_object: attach an object from the end effector. If to_remove is set to True, it also remove the object from the scene.
+- /ur_control_wrapper/remove_object: remove an object form the scene.
+- /ur_control_wrapper/forward_kinematics: get the pose with joint angles.
+- /ur_control_wrapper/get_interpolate_points: get the waypoints.
 
 They are all blocking calls.
 
 To run the demo, launch: `demo.launch` or run demo.py directly with rosrun if ur_control_warpper.launch already launched.
-
-## new functions to be documented:
-- set trajectory
-- add box
-- check pose
-- interpolate poses
 
 ## Notes:
 
