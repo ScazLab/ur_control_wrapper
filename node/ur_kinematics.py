@@ -231,6 +231,9 @@ class Kinematics(object):
 
         ## Now, we call the planner to compute the plan and execute it.
         plan = move_group.go(wait=True)
+        
+        print "plan is:"
+        print plan
         # Calling `stop()` ensures that there is no residual movement
         move_group.stop()
 
@@ -253,8 +256,8 @@ class Kinematics(object):
         move_group = self.move_group
         (plan, fraction) = move_group.compute_cartesian_path(data.trajectory, 0.01, 0.0)
         
-        #print "trajectory planned by moveit"
-        #print plan
+        print "trajectory planned by moveit"
+        print plan
         
         move_group.execute(plan, wait=True)
         
@@ -399,6 +402,8 @@ class Kinematics(object):
         elif object_type == AddObjectRequest.TYPE_CYLINDER:
             height = data.size.x
             radius = data.size.y
+            print "height: ", height
+            print "radius: ", radius
             scene.add_cylinder(object_name, object_pose, height, radius)
         else:
             return AddObjectResponse(False)
