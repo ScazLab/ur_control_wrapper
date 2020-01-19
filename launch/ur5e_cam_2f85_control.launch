@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="limited" default="true"/>
+	<arg name="limited" default="false"/>
 
     <include file="$(find ur_robot_driver)/launch/ur5e_cam_2f85_bringup.launch" >
     	<arg name="limited" value="false" />
