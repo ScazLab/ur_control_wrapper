@@ -45,7 +45,7 @@ class Demo:
         set_joints = rospy.ServiceProxy("/ur_control_wrapper/set_joints", SetJoints)
         joints = JointState()
         joints.name = ["elbow_joint", "shoulder_lift_joint", "shoulder_pan_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
-        joints.position = [2.242737118397848, -1.9379054508604945, -4.880746666585104, -0.3946760457805176, 1.2857670783996582, 4.764250755310059]
+        joints.position = [-np.pi / 3.0, -2.0 * np.pi / 3, 0.0, np.pi * 2.0 / 3.0, -np.pi / 2.0, 0.0]
         try:
             response = set_joints(joints)
         except rospy.ServiceException as exc:
