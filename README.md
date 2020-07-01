@@ -1,3 +1,7 @@
+# NOTE
+
+We released this open source control wrapper, hoping that it may help more people to have fun with the robot:) . But due to time constraints, we will not be able to help with installing/setting up the system. For those questions, you may get help from the Universal Robot's forum. But if you notice a bug that is specific to running this package, you are very welcome to let us know. Thank you!
+
 # ur_control_wrapper
 
 This is a ros wrapper to control The UR arm with the Robotiq 2F 85 gripper, with moveit. The setup instruction could be found here: <https://scazlab.github.io/ur5e_setup_guide.html>
